@@ -60,11 +60,7 @@ public final class OrderBookSimulator {
 
         /* Main loop - read each line until the end of input */
         while (scanner.hasNextLine()) {
-            try {
-                appendOrder(scanner.nextLine());
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+            appendOrder(scanner.nextLine());
         }
     }
 }
