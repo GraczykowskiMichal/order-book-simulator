@@ -1,3 +1,4 @@
+import java.util.Comparator;
 import java.util.TreeSet;
 import java.util.Scanner;
 import org.json.*;
@@ -6,39 +7,128 @@ import org.json.*;
  * Created by michalgraczykowski on 22.06.16.
  */
 public final class OrderBookSimulator {
-    /* Sorted set of BuyOrder objects */
-    TreeSet<BuyOrder> buyOrders = new TreeSet<BuyOrder>();
+    /**
+     * Comparator for Order objects with "Buy" direction.
+     * Order: Descending on prices,
+     * if equal, ascending on timeStamps
+     */
+    private class BuyOrderComparator implements Comparator<Order> {
 
-    /* Sorted set of SellOrder objects */
-    TreeSet<SellOrder> sellOrders = new TreeSet<SellOrder>();
+        /**
+         * Compares two Order objects with "Buy" direction.
+         *
+         * @param o1 first order to compare
+         * @param o2 second order to compare
+         * @return 0 if equal, > 0 if o1 > o2, < 0 if o1 < o2
+         */
+        @Override
+        public int compare(Order o1, Order o2) {
+            /* Get the difference in prices */
+            int priceDifference = o2.price - o1.price;
+
+            if (priceDifference != 0) {
+                return priceDifference;
+            } else {
+                return o1.timeStamp.compareTo(o2.timeStamp);
+            }
+        }
+    }
 
     /**
-     * Decides where to append order created from the input
-     * and appends to the proper collection (buyOrders or sellOrders).
+     * Comparator for Order objects with "Sell" direction.
+     * Order: Ascending on prices,
+     * if equal, ascending on timeStamps
+     */
+    private class SellOrderComparator implements Comparator<Order> {
+
+        /**
+         * Compares two Order objects with "Sell" direction.
+         *
+         * @param o1 first order to compare
+         * @param o2 second order to compare
+         * @return 0 if equal, > 0 if o1 > o2, < 0 if o1 < o2
+         */
+        @Override
+        public int compare(Order o1, Order o2) {
+            /* Get the difference in prices */
+            int priceDifference = o1.price - o2.price;
+
+            if (priceDifference != 0) {
+                return priceDifference;
+            } else {
+                return o1.timeStamp.compareTo(o2.timeStamp);
+            }
+        }
+    }
+
+
+    /* Sorted set of Order objects with "Buy" direction */
+    TreeSet<Order> buyOrders = new TreeSet<Order>(new BuyOrderComparator());
+
+    /* Sorted set of Order objects with "Sell" direction */
+    TreeSet<Order> sellOrders = new TreeSet<Order>(new SellOrderComparator());
+
+
+    private void addSellOrder(Order newSellOrder) {
+        boolean continueTransactions = true;
+        while (buyOrders.size() > 0 && continueTransactions) {
+            boolean foundMatchingOrder;
+            Order firstBuyOrder = buyOrders.first();
+            if (firstBuyOrder.getPrice() >= newSellOrder.getPrice()) {
+                foundMatchingOrder = true;
+                buyOrders.remove(firstBuyOrder);
+                firstBuyOrder.runTransaction(newSellOrder);
+            } else {
+                foundMatchingOrder = false;
+            }
+
+            if (foundMatchingOrder) {
+                if (firstBuyOrder.getQuantity() > 0) {
+                    buyOrders.add(firstBuyOrder);
+                }
+                continueTransactions = (newSellOrder.getQuantity() > 0);
+            }
+            continueTransactions = continueTransactions && foundMatchingOrder;
+        }
+
+        if (newSellOrder.getQuantity() > 0) {
+            sellOrders.add(newSellOrder);
+        }
+    }
+
+    private void addBuyOrder(Order newOrder) {
+
+    }
+
+    /**
+     * Create order from the JSON input
+     * and processes it.
      *
      * Assumes that the input data is correct.
      *
-     *  @param input Data in JSON format to create order
+     * @param input Data in JSON format to create order
      */
-    private void appendOrder(String input) {
-        /* Replace double quotes (“ and ”) with the single quote (') */
-        String jsonInput = input.replace("“", "'").replace("”", "'");
+    private void processOrder(String input) {
+        /* Create new Order object */
+        Order newOrder = OrderFactory.createOrder(input);
 
-        /* Create JSON object based on input */
-        JSONObject jsonObject = new JSONObject(jsonInput);
+        /* Append to proper collection */
+        String direction = newOrder.getDirection();
+        if (direction.equals("Buy")) {
+            //addBuyOrder(newOrder);
+            buyOrders.add(newOrder);
+        } else if (direction.equals("Sell")) {
+            addSellOrder(newOrder);
+        }
 
-        /* Resolve order direction */
-        String direction = jsonObject.getJSONObject("order").getString("direction");
+        System.out.println("Buy orders:");
+        for (Order order : buyOrders) {
+            System.out.println(order);
+        }
 
-        try {
-            /* Append to proper collection */
-            if (direction.equals("Buy")) {
-                buyOrders.add(OrderFactory.createBuyOrder(jsonObject));
-            } else if (direction.equals("Sell")) {
-                sellOrders.add(OrderFactory.createSellOrder(jsonObject));
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
+        System.out.println("Sell orders:");
+        for (Order order : sellOrders) {
+            System.out.println(order);
         }
     }
 
@@ -58,9 +148,9 @@ public final class OrderBookSimulator {
         /* Create a scanner so we can read the input */
         Scanner scanner = new Scanner(System.in);
 
-        /* Main loop - read each line until the end of input */
+        /* Main loop - read and process each line until the end of input */
         while (scanner.hasNextLine()) {
-            appendOrder(scanner.nextLine());
+            processOrder(scanner.nextLine());
         }
     }
 }
