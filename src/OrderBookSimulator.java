@@ -19,7 +19,7 @@ public final class OrderBookSimulator {
          *
          * @param o1 first order to compare
          * @param o2 second order to compare
-         * @return 0 if equal, > 0 if o1 > o2, < 0 if o1 < o2
+         * @return 0 if equal, >0 if o1>o2, <0 if o1<o2
          */
         @Override
         public int compare(Order o1, Order o2) {
@@ -46,7 +46,7 @@ public final class OrderBookSimulator {
          *
          * @param o1 first order to compare
          * @param o2 second order to compare
-         * @return 0 if equal, > 0 if o1 > o2, < 0 if o1 < o2
+         * @return 0 if equal, >0 if o1>o2, <0 if o1<o2
          */
         @Override
         public int compare(Order o1, Order o2) {
