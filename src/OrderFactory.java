@@ -7,6 +7,25 @@ import org.json.*;
  * createOrder static method creates Order object based on JSON input.
  */
 public final class OrderFactory {
+    /* Variable to receive orderId for the new Order object */
+    static private int nextOrderId = 0;
+
+    /**
+     * Returns next orderId for the new Order object.
+     * If current nextOrderId == Integer.MAX_VALUE starts counting from 0.
+     *
+     * @return orderId for the new Order object.
+     */
+    private static int getNextOrderId() {
+        if (nextOrderId == Integer.MAX_VALUE) {
+            nextOrderId = 0;
+        } else {
+            nextOrderId++;
+        }
+
+        return nextOrderId;
+    }
+
     /**
      * Creates Order object based on JSON input.
      *
@@ -46,7 +65,7 @@ public final class OrderFactory {
 
         if (type.equals("Limit")) {
             /* Return LimitOrder Object */
-            return new LimitOrder(direction, id, price, quantity);
+            return new LimitOrder(direction, id, price, quantity, getNextOrderId());
         } else {
             /* Assuming that input is correct. */
             /* if type != "Limit" then it equals to "Iceberg" */
@@ -55,7 +74,7 @@ public final class OrderFactory {
             int peak = orderJSONObject.getInt("peak");
 
             /* Return IcebergOrder Object */
-            return new IcebergOrder(direction, id, price, quantity, peak);
+            return new IcebergOrder(direction, id, price, quantity, getNextOrderId(), peak);
         }
     }
 }

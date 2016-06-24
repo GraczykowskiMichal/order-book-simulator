@@ -1,16 +1,34 @@
 import org.json.JSONObject;
 
+import java.util.Date;
+
+import static java.lang.Math.min;
+
 /**
  * Created by michalgraczykowski on 22.06.16.
  *
  * Represents Iceberg Order.
  */
 public class IcebergOrder extends Order {
-    protected final int peak;
+    private final int peak;
+    private int visibleQuantity;
 
-    public IcebergOrder(String direction, int id, int price, int quantity, int peak) {
-        super(direction, id, price, quantity);
+    /**
+     * Constructor simply assigning values.
+     * Assumes that the input data is correct.
+     */
+    public IcebergOrder(String direction, int id, int price, int quantity, int orderId, int peak) {
+        super(direction, id, price, quantity, orderId);
         this.peak = peak;
+        this.visibleQuantity = peak;
+    }
+
+    /**
+     * @return current visible quantity
+     */
+    @Override
+    public int getQuantity() {
+        return this.visibleQuantity;
     }
 
     @Override
@@ -19,18 +37,38 @@ public class IcebergOrder extends Order {
         jsonObject.put("direction", this.direction);
         jsonObject.put("id", this.id);
         jsonObject.put("price", this.price);
-        jsonObject.put("quantity", this.quantity);
+        jsonObject.put("quantity", this.visibleQuantity);
+        jsonObject.put("orderId", this.orderId);
         jsonObject.put("peak", this.peak);
         return jsonObject.toString();
     }
 
-    @Override
-    protected void decreaseQuantity(int amount) {
-
+    /**
+     * Resets timeStamp of the Iceberg Order.
+     */
+    private void resetTimeStamp() {
+        /* timeStamp = current date */
+        this.timeStamp = new Date();
     }
 
+    /**
+     * Decreases quantity of the Iceberg Order
+     * and updates visiable quantity due to defined peak.
+     * Assumes that amount <= this.visibleQuantity.
+     *
+     * @param amount amount to decrease
+     */
     @Override
-    public void runTransaction(Order other) {
+    protected void decreaseQuantity(int amount) {
+        /* Decrease quantity */
+        this.visibleQuantity -= amount;
+        this.quantity -= amount;
 
+        /* If end of the peak is reached
+           reset timeStamp and update visible quantity */
+        if (this.visibleQuantity == 0) {
+            resetTimeStamp();
+            this.visibleQuantity = min(this.quantity, this.peak);
+        }
     }
 }

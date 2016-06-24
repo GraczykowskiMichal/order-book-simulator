@@ -2,20 +2,34 @@ import java.util.Comparator;
 import java.util.TreeSet;
 import java.util.Scanner;
 import org.json.*;
+import static java.lang.Math.max;
 
 /**
  * Created by michalgraczykowski on 22.06.16.
+ *
+ * Class to simulate Order Book.
  */
 public final class OrderBookSimulator {
     /**
-     * Comparator for Order objects with "Buy" direction.
-     * Order: Descending on prices,
-     * if equal, ascending on timeStamps
+     * Comparator for Order objects.
+     * Compares on prices
+     * if equal, ascending on timeStamps,
+     * if equal, ascending on orderIds
      */
-    private class BuyOrderComparator implements Comparator<Order> {
+    private class OrderComparator implements Comparator<Order> {
+        private OrderOnPricesComparatorInterface orderOnPricesComparatorInterface;
 
         /**
-         * Compares two Order objects with "Buy" direction.
+         * Constructor.
+         *
+         * @param orderOnPricesComparatorInterface interface comparing Order objects on prices
+         */
+        public OrderComparator(OrderOnPricesComparatorInterface orderOnPricesComparatorInterface) {
+            this.orderOnPricesComparatorInterface = orderOnPricesComparatorInterface;
+        }
+
+        /**
+         * Compares two Order objects.
          *
          * @param o1 first order to compare
          * @param o2 second order to compare
@@ -24,80 +38,131 @@ public final class OrderBookSimulator {
         @Override
         public int compare(Order o1, Order o2) {
             /* Get the difference in prices */
-            int priceDifference = o2.price - o1.price;
-
+            int priceDifference = orderOnPricesComparatorInterface.compareOnPrices(o1, o2);
             if (priceDifference != 0) {
                 return priceDifference;
-            } else {
-                return o1.timeStamp.compareTo(o2.timeStamp);
             }
+
+            /* Get the difference in timeStamps */
+            int timeStampDifference = o1.timeStamp.compareTo(o2.timeStamp);
+            if (timeStampDifference != 0) {
+                return timeStampDifference;
+            }
+
+            /* If prices and timeStamps equal, compare on orderIds */
+            return o1.orderId - o2.orderId;
         }
     }
+
+
+    /* Sorted set of Order objects with "Buy" direction.
+       Sorting descending on prices. */
+    TreeSet<Order> buyOrders = new TreeSet<>(new OrderComparator(
+            (o1, o2) -> {
+                return o2.getPrice() - o1.getPrice();
+            }
+    ));
+
+    /* Sorted set of Order objects with "Sell" direction.
+       Sorting ascending on prices. */
+    TreeSet<Order> sellOrders = new TreeSet<>(new OrderComparator(
+            (o1, o2) -> {
+                return o1.getPrice() - o2.getPrice();
+            }
+    ));
+
 
     /**
-     * Comparator for Order objects with "Sell" direction.
-     * Order: Ascending on prices,
-     * if equal, ascending on timeStamps
+     * Prints info about the transaction in JSON format.
      */
-    private class SellOrderComparator implements Comparator<Order> {
-
-        /**
-         * Compares two Order objects with "Sell" direction.
-         *
-         * @param o1 first order to compare
-         * @param o2 second order to compare
-         * @return 0 if equal, >0 if o1>o2, <0 if o1<o2
-         */
-        @Override
-        public int compare(Order o1, Order o2) {
-            /* Get the difference in prices */
-            int priceDifference = o1.price - o2.price;
-
-            if (priceDifference != 0) {
-                return priceDifference;
-            } else {
-                return o1.timeStamp.compareTo(o2.timeStamp);
-            }
-        }
+    private void printTransactionInfo(int buyOrderId, int sellOrderId, int price, int quantity) {
+        JSONObject transactionJSON = new JSONObject();
+        transactionJSON.put("buyOrderId", buyOrderId);
+        transactionJSON.put("sellOrderId", sellOrderId);
+        transactionJSON.put("price", price);
+        transactionJSON.put("quantity", quantity);
+        System.out.println(transactionJSON.toString());
     }
 
-
-    /* Sorted set of Order objects with "Buy" direction */
-    TreeSet<Order> buyOrders = new TreeSet<Order>(new BuyOrderComparator());
-
-    /* Sorted set of Order objects with "Sell" direction */
-    TreeSet<Order> sellOrders = new TreeSet<Order>(new SellOrderComparator());
-
-
-    private void addSellOrder(Order newSellOrder) {
+    private void addToOrderBook(Order newOrder, TreeSet<Order> matchingOrdersSet,
+                                TreeSet<Order> oppositeOrdersSet,
+                                TransactionCheckerInterface transactionCheckerInterface,
+                                TransactionPrinterInterface transactionPrinterInterface) {
+        /* Knows if we should continue transactions */
         boolean continueTransactions = true;
-        while (buyOrders.size() > 0 && continueTransactions) {
+
+        /* Main loop - run as many transactions as possible */
+        while (oppositeOrdersSet.size() > 0 && continueTransactions) {
+            /* Knows if order with possible transaction was found */
             boolean foundMatchingOrder;
-            Order firstBuyOrder = buyOrders.first();
-            if (firstBuyOrder.getPrice() >= newSellOrder.getPrice()) {
+
+            /* Resolve first order from the opposite orders */
+            Order firstOppositeOrder = oppositeOrdersSet.first();
+
+            if (transactionCheckerInterface.isTransactionAvailable(newOrder, firstOppositeOrder)) {
+                /* Mark that order with possible transaction was found */
                 foundMatchingOrder = true;
-                buyOrders.remove(firstBuyOrder);
-                firstBuyOrder.runTransaction(newSellOrder);
+
+                /* Remove order with possible transaction from its set */
+                oppositeOrdersSet.remove(firstOppositeOrder);
+
+                /* Run transaction and resolve its quantity */
+                int quantity = firstOppositeOrder.runTransaction(newOrder);
+                /* to fill!! */
+                int matchingOrderId = newOrder.getId();
+                /* Resolve opposite order id */
+                int oppositeOrderId = firstOppositeOrder.getId();
+                /* Resolve transaction price */
+                int price = max(newOrder.getPrice(), firstOppositeOrder.getPrice());
+                /* Print transaction info */
+                transactionPrinterInterface.printTransactionInfo(matchingOrderId, oppositeOrderId,
+                        price, quantity);
             } else {
+                /* Mark that order with possible transaction was not found */
                 foundMatchingOrder = false;
             }
 
+            /* Knows if newOrder is done */
+            boolean newOrderIsDone = false;
+
             if (foundMatchingOrder) {
-                if (firstBuyOrder.getQuantity() > 0) {
-                    buyOrders.add(firstBuyOrder);
+                /* If the opposite order is not done
+                we need to put it back to its set */
+                if (firstOppositeOrder.getQuantity() > 0) {
+                    oppositeOrdersSet.add(firstOppositeOrder);
                 }
-                continueTransactions = (newSellOrder.getQuantity() > 0);
+                /* Mark if newOrder is done */
+                newOrderIsDone = (newOrder.getQuantity() == 0);
             }
-            continueTransactions = continueTransactions && foundMatchingOrder;
+
+            /* Conjunction of two operands */
+            continueTransactions = (foundMatchingOrder && !newOrderIsDone);
         }
 
-        if (newSellOrder.getQuantity() > 0) {
-            sellOrders.add(newSellOrder);
+        /* In newOrder is not done put it into its set */
+        if (newOrder.getQuantity() > 0) {
+            matchingOrdersSet.add(newOrder);
         }
     }
 
-    private void addBuyOrder(Order newOrder) {
+    private void addSellOrder(Order newSellOrder) {
+        addToOrderBook(newSellOrder, sellOrders, buyOrders,
+                (sellOrder, buyOrder) -> {
+                    return (sellOrder.getPrice() <= buyOrder.getPrice());
+                },
+                (sellOrderId, buyOrderId, price, quantity) -> {
+                    printTransactionInfo(buyOrderId, sellOrderId, price, quantity);
+                });
+    }
 
+    private void addBuyOrder(Order newBuyOrder) {
+        addToOrderBook(newBuyOrder, buyOrders, sellOrders,
+                (buyOrder, sellOrder) -> {
+                    return (buyOrder.getPrice() >= sellOrder.getPrice());
+                },
+                (buyOrderId, sellOrderId, price, quantity) -> {
+                    printTransactionInfo(buyOrderId, sellOrderId, price, quantity);
+                });
     }
 
     /**
@@ -115,8 +180,7 @@ public final class OrderBookSimulator {
         /* Append to proper collection */
         String direction = newOrder.getDirection();
         if (direction.equals("Buy")) {
-            //addBuyOrder(newOrder);
-            buyOrders.add(newOrder);
+            addBuyOrder(newOrder);
         } else if (direction.equals("Sell")) {
             addSellOrder(newOrder);
         }
