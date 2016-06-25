@@ -1,4 +1,5 @@
 import java.util.Comparator;
+import java.util.LinkedList;
 import java.util.TreeSet;
 import java.util.Scanner;
 import org.json.*;
@@ -31,26 +32,26 @@ public final class OrderBookSimulator {
         /**
          * Compares two Order objects.
          *
-         * @param o1 first order to compare
-         * @param o2 second order to compare
-         * @return 0 if equal, >0 if o1>o2, <0 if o1<o2
+         * @param order1 first order to compare
+         * @param order2 second order to compare
+         * @return 0 if equal, >0 if order1>order2, <0 if order1<order2
          */
         @Override
-        public int compare(Order o1, Order o2) {
+        public int compare(Order order1, Order order2) {
             /* Get the difference in prices */
-            int priceDifference = orderOnPricesComparatorInterface.compareOnPrices(o1, o2);
+            int priceDifference = orderOnPricesComparatorInterface.compareOnPrices(order1, order2);
             if (priceDifference != 0) {
                 return priceDifference;
             }
 
             /* Get the difference in timeStamps */
-            int timeStampDifference = o1.timeStamp.compareTo(o2.timeStamp);
+            int timeStampDifference = order1.timeStamp.compareTo(order2.timeStamp);
             if (timeStampDifference != 0) {
                 return timeStampDifference;
             }
 
             /* If prices and timeStamps equal, compare on orderIds */
-            return o1.orderId - o2.orderId;
+            return order1.orderId - order2.orderId;
         }
     }
 
@@ -58,32 +59,85 @@ public final class OrderBookSimulator {
     /* Sorted set of Order objects with "Buy" direction.
        Sorting descending on prices. */
     TreeSet<Order> buyOrders = new TreeSet<>(new OrderComparator(
-            (o1, o2) -> {
-                return o2.getPrice() - o1.getPrice();
+            (order1, order2) -> {
+                return order2.getPrice() - order1.getPrice();
             }
     ));
 
     /* Sorted set of Order objects with "Sell" direction.
        Sorting ascending on prices. */
     TreeSet<Order> sellOrders = new TreeSet<>(new OrderComparator(
-            (o1, o2) -> {
-                return o1.getPrice() - o2.getPrice();
+            (order1, order2) -> {
+                return order1.getPrice() - order2.getPrice();
             }
     ));
 
+    /* List of transactions' info in JSON format */
+    LinkedList<String> transactionInfoList = new LinkedList<>();
+
 
     /**
-     * Prints info about the transaction in JSON format.
+     * Prints info about orders in the Order Book
      */
-    private void printTransactionInfo(int buyOrderId, int sellOrderId, int price, int quantity) {
+    private void printOrdersInfo() {
+        System.out.println("Buy orders:");
+        for (Order order : buyOrders) {
+            System.out.println(order);
+        }
+
+        System.out.println();
+
+        System.out.println("Sell orders:");
+        for (Order order : sellOrders) {
+            System.out.println(order);
+        }
+
+        System.out.println();
+    }
+
+    /**
+     * Adds transaction's info to the transactionInfoList.
+     *
+     * @param buyOrderId buy Order's id
+     * @param sellOrderId sell Order's id
+     * @param price price of the transaction
+     * @param quantity quantity of the transaction
+     */
+    private void addToTransactionInfoList(int buyOrderId, int sellOrderId, int price, int quantity) {
+        /* Create JSON object and fill it */
         JSONObject transactionJSON = new JSONObject();
         transactionJSON.put("buyOrderId", buyOrderId);
         transactionJSON.put("sellOrderId", sellOrderId);
         transactionJSON.put("price", price);
         transactionJSON.put("quantity", quantity);
-        System.out.println(transactionJSON.toString());
+
+        /* Append new info */
+        transactionInfoList.add(transactionJSON.toString());
     }
 
+    /**
+     * Prints info in the transactionInfoList and clears it.
+     */
+    private void printTransactionInfoList() {
+        /* Print info */
+        for (String transactionInfo : transactionInfoList) {
+            System.out.println(transactionInfo);
+        }
+
+        /* Clear list */
+        transactionInfoList.clear();
+    }
+
+    /**
+     * Executes possible transactions with new Order,
+     * and if it is not finished, adds it to the proper collection.
+     *
+     * @param newOrder Order to add to Order Book
+     * @param matchingOrdersSet if Order is buy order then buyOrders, if sell order then sellOrders
+     * @param oppositeOrdersSet if Order is buy order then sellOrders, if sell order then buyOrders
+     * @param transactionCheckerInterface interface to check if transaction is possible
+     * @param transactionPrinterInterface interface to print transaction's info
+     */
     private void addToOrderBook(Order newOrder, TreeSet<Order> matchingOrdersSet,
                                 TreeSet<Order> oppositeOrdersSet,
                                 TransactionCheckerInterface transactionCheckerInterface,
@@ -108,66 +162,81 @@ public final class OrderBookSimulator {
 
                 /* Run transaction and resolve its quantity */
                 int quantity = firstOppositeOrder.runTransaction(newOrder);
-                /* to fill!! */
+                /* Resolve new Order id*/
                 int matchingOrderId = newOrder.getId();
-                /* Resolve opposite order id */
+                /* Resolve first opposite Order id */
                 int oppositeOrderId = firstOppositeOrder.getId();
                 /* Resolve transaction price */
                 int price = max(newOrder.getPrice(), firstOppositeOrder.getPrice());
                 /* Print transaction info */
-                transactionPrinterInterface.printTransactionInfo(matchingOrderId, oppositeOrderId,
+                transactionPrinterInterface.processTransactionInfo(matchingOrderId, oppositeOrderId,
                         price, quantity);
             } else {
                 /* Mark that order with possible transaction was not found */
                 foundMatchingOrder = false;
             }
 
-            /* Knows if newOrder is done */
-            boolean newOrderIsDone = false;
+            /* Knows if newOrder is finished */
+            boolean newOrderIsFinished = false;
 
             if (foundMatchingOrder) {
-                /* If the opposite order is not done
+                /* If the first opposite order is not finished
                 we need to put it back to its set */
                 if (firstOppositeOrder.getQuantity() > 0) {
                     oppositeOrdersSet.add(firstOppositeOrder);
                 }
-                /* Mark if newOrder is done */
-                newOrderIsDone = (newOrder.getQuantity() == 0);
+                /* Mark if newOrder is finished */
+                newOrderIsFinished = (newOrder.getQuantity() == 0);
             }
 
             /* Conjunction of two operands */
-            continueTransactions = (foundMatchingOrder && !newOrderIsDone);
+            continueTransactions = (foundMatchingOrder && !newOrderIsFinished);
         }
 
-        /* In newOrder is not done put it into its set */
+        /* In newOrder is not finished put it into its set */
         if (newOrder.getQuantity() > 0) {
             matchingOrdersSet.add(newOrder);
         }
     }
 
+    /**
+     * Processes adding new sell Order to Order Book
+     *
+     * @param newSellOrder order to add to Order Book
+     */
     private void addSellOrder(Order newSellOrder) {
+        /* Add to Order Book */
         addToOrderBook(newSellOrder, sellOrders, buyOrders,
+                /* Determine when transaction is possible */
                 (sellOrder, buyOrder) -> {
                     return (sellOrder.getPrice() <= buyOrder.getPrice());
                 },
+                /* Process transaction info - add it to the list to print later */
                 (sellOrderId, buyOrderId, price, quantity) -> {
-                    printTransactionInfo(buyOrderId, sellOrderId, price, quantity);
-                });
-    }
-
-    private void addBuyOrder(Order newBuyOrder) {
-        addToOrderBook(newBuyOrder, buyOrders, sellOrders,
-                (buyOrder, sellOrder) -> {
-                    return (buyOrder.getPrice() >= sellOrder.getPrice());
-                },
-                (buyOrderId, sellOrderId, price, quantity) -> {
-                    printTransactionInfo(buyOrderId, sellOrderId, price, quantity);
+                    addToTransactionInfoList(sellOrderId, buyOrderId, price, quantity);
                 });
     }
 
     /**
-     * Create order from the JSON input
-     * and processes it.
+     * Processes adding new buy Order to Order Book
+     *
+     * @param newBuyOrder order to add to Order Book
+     */
+    private void addBuyOrder(Order newBuyOrder) {
+        /* Add to Order Book */
+        addToOrderBook(newBuyOrder, buyOrders, sellOrders,
+                /* Determine when transaction is possible */
+                (buyOrder, sellOrder) -> {
+                    return (buyOrder.getPrice() >= sellOrder.getPrice());
+                },
+                /* Process transaction info - add it to the list to print later */
+                (buyOrderId, sellOrderId, price, quantity) -> {
+                    addToTransactionInfoList(buyOrderId, sellOrderId, price, quantity);
+                });
+    }
+
+    /**
+     * Create order from the JSON input and processes it.
      *
      * Assumes that the input data is correct.
      *
@@ -185,15 +254,11 @@ public final class OrderBookSimulator {
             addSellOrder(newOrder);
         }
 
-        System.out.println("Buy orders:");
-        for (Order order : buyOrders) {
-            System.out.println(order);
-        }
+        /* Print orders in Order Book */
+        printOrdersInfo();
 
-        System.out.println("Sell orders:");
-        for (Order order : sellOrders) {
-            System.out.println(order);
-        }
+        /* Print list of transactions done */
+        printTransactionInfoList();
     }
 
     /**

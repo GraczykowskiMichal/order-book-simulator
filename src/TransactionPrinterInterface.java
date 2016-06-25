@@ -3,12 +3,12 @@
  */
 public interface TransactionPrinterInterface {
     /**
-     * Prints info about transaction.
+     * Processes info about transaction.
      *
      * @param matchingOrderId id of the matching Order object
      * @param oppositeOrderId id of the opposite Order object
      * @param price price of the transaction
      * @param quantity quantity of the transaction
      */
-    void printTransactionInfo(int matchingOrderId, int oppositeOrderId, int price, int quantity);
+    void processTransactionInfo(int matchingOrderId, int oppositeOrderId, int price, int quantity);
 }
