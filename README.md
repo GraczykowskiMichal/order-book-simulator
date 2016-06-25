@@ -1,5 +1,5 @@
 # order-book-simulator
-Simple order book (https://en.wikipedia.org/wiki/Order_book_(trading)) simulator
+Simple order book (https://en.wikipedia.org/wiki/Order_book_(trading)) simulator.
 
 ## Example session
 >{“type”:“Limit”,“order”:{“direction”:“Buy”,“id”:1,“price”:14,“quantity”:20}}  
@@ -23,14 +23,14 @@ Simple order book (https://en.wikipedia.org/wiki/Order_book_(trading)) simulator
 
 ## Requirements
 Java SE Development Kit 8 is required to build the project.  
-You can download it from here http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html
+You can download it from here http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html.
 
 ## Build instructions
 git clone https://github.com/GraczykowskiMichal/order-book-simulator  
 cd order-book-simulator/src  
 javac -cp ../jars/json.jar *.java
   
-You can also open it as a project in IDE, such as IntelliJ IDEA. Do not forget to add json.jar 
+You can also open it as a project in IDE, such as IntelliJ IDEA. Do not forget to attach json.jar.
 
 ## Run instructions
 java -cp .:../jars/json.jar OrderBook
