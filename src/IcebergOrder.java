@@ -48,28 +48,4 @@ public class IcebergOrder extends Order {
             this.visibleQuantity = min(this.quantity, this.peak);
         }
     }
-
-    /**
-     * Runs transaction on the Iceberg Order
-     * assuming that this method is called
-     * on the Iceberg Order that just joined the Order Book.
-     * Assumes that transaction can be made.
-     *
-     * @param other Order to make the transaction with
-     * @return amount of the transaction
-     */
-    @Override
-    public int runTransaction(Order other) {
-        int transactionAmount = min(this.getQuantity(), other.getQuantity());
-        this.decreaseQuantity(transactionAmount);
-
-        /* if the visible quantity of the order == transactionAmount
-           we need to reset the timeStamp. If other is Limit Order it will
-           be removed from the Order Book. */
-        if (other.getQuantity() == transactionAmount) {
-            other.resetTimeStamp();
-        }
-        other.decreaseQuantity(transactionAmount);
-        return transactionAmount;
-    }
 }

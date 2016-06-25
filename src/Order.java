@@ -108,6 +108,13 @@ public abstract class Order {
     public int runTransaction(Order other) {
         int transactionAmount = min(this.getQuantity(), other.getQuantity());
         this.decreaseQuantity(transactionAmount);
+
+        /* if the visible quantity of the order == transactionAmount
+           we need to reset the timeStamp. If other is Limit Order it will
+           be removed from the Order Book. */
+        if (other.getQuantity() == transactionAmount) {
+            other.resetTimeStamp();
+        }
         other.decreaseQuantity(transactionAmount);
         return transactionAmount;
     }
