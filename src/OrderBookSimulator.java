@@ -14,7 +14,7 @@ public final class OrderBookSimulator {
     /**
      * Comparator for Order objects.
      * Compares on prices
-     * if equal, ascending on timeStamps,
+     * if equal, ascending on timeStamps,f
      * if equal, ascending on orderIds
      */
     private class OrderComparator implements Comparator<Order> {
@@ -150,7 +150,7 @@ public final class OrderBookSimulator {
             /* Knows if order with possible transaction was found */
             boolean foundMatchingOrder;
 
-            /* Resolve first order from the opposite orders */
+            /* Get first order from the opposite orders */
             Order firstOppositeOrder = oppositeOrdersSet.first();
 
             if (transactionCheckerInterface.isTransactionAvailable(newOrder, firstOppositeOrder)) {
@@ -160,13 +160,13 @@ public final class OrderBookSimulator {
                 /* Remove order with possible transaction from its set */
                 oppositeOrdersSet.remove(firstOppositeOrder);
 
-                /* Run transaction and resolve its quantity */
+                /* Run transaction and Get its quantity */
                 int quantity = firstOppositeOrder.runTransaction(newOrder);
-                /* Resolve new Order id*/
+                /* Get new Order id*/
                 int matchingOrderId = newOrder.getId();
-                /* Resolve first opposite Order id */
+                /* Get first opposite Order id */
                 int oppositeOrderId = firstOppositeOrder.getId();
-                /* Resolve transaction price */
+                /* Get transaction price */
                 int price = max(newOrder.getPrice(), firstOppositeOrder.getPrice());
                 /* Print transaction info */
                 transactionPrinterInterface.processTransactionInfo(matchingOrderId, oppositeOrderId,

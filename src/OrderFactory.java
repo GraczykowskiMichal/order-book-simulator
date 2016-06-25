@@ -45,22 +45,22 @@ public final class OrderFactory {
         /* Create JSON object based on input */
         JSONObject jsonObject = new JSONObject(jsonInput);
 
-        /* Resolve order direction */
+        /* Get order direction */
         String direction = jsonObject.getJSONObject("order").getString("direction");
 
-        /* Resolve order type */
+        /* Get order type */
         String type = jsonObject.getString("type");
 
         /* Create order JSON object */
         JSONObject orderJSONObject = jsonObject.getJSONObject("order");
 
-        /* Resolve order id */
+        /* Get order id */
         int id = orderJSONObject.getInt("id");
 
-        /* Resolve order price */
+        /* Get order price */
         int price = orderJSONObject.getInt("price");
 
-        /* Resolve order quantity */
+        /* Get order quantity */
         int quantity = orderJSONObject.getInt("quantity");
 
         if (type.equals("Limit")) {
@@ -70,7 +70,7 @@ public final class OrderFactory {
             /* Assuming that input is correct. */
             /* if type != "Limit" then it equals to "Iceberg" */
 
-            /* Resolve order peak */
+            /* Get order peak */
             int peak = orderJSONObject.getInt("peak");
 
             /* Return IcebergOrder Object */

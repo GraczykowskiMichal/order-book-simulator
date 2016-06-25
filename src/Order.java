@@ -16,7 +16,7 @@ public abstract class Order {
     protected int quantity;
     protected Date timeStamp;
 
-    /* id to resolve incoming order
+    /* id to know incoming order
        if the prices and timeStamps are equal */
     protected final int orderId;
 
