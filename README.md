@@ -1,5 +1,5 @@
 # order-book-simulator
-Simple order book ( https://en.wikipedia.org/wiki/Order_book_(trading) ) simulator
+Simple order book (https://en.wikipedia.org/wiki/Order_book_(trading)) simulator
 
 ## Example session
 >{“type”:“Limit”,“order”:{“direction”:“Buy”,“id”:1,“price”:14,“quantity”:20}}  
@@ -19,4 +19,8 @@ Simple order book ( https://en.wikipedia.org/wiki/Order_book_(trading) ) simulat
 {“buyOrderId”:2,“sellOrderId”:4,“price”:15,“quantity”:20}  
 {“buyOrderId”:2,“sellOrderId”:4,“price”:15,“quantity”:20}  
 {“buyOrderId”:2,“sellOrderId”:4,“price”:15,“quantity”:10}  
-{“buyOrderId”:1,“sellOrderId”:4,“price”:14,“quantity”:10}  
+{“buyOrderId”:1,“sellOrderId”:4,“price”:14,“quantity”:10}
+
+## Requirements
+Java SE Development Kit 8 is required to build the project.  
+You can download it from here http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html  
