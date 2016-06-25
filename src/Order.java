@@ -62,15 +62,25 @@ public abstract class Order {
         return this.quantity;
     }
 
-    @Override
-    public String toString() {
-        JSONObject jsonObject = new JSONObject();
-        jsonObject.put("direction", this.direction);
-        jsonObject.put("id", this.id);
-        jsonObject.put("price", this.price);
-        jsonObject.put("quantity", this.quantity);
-        jsonObject.put("orderId", this.orderId);
-        return jsonObject.toString();
+    /**
+     * Converts order to ordered JSON string.
+     *
+     * @return Ordered JSON string with fields: id, price, quantity
+     */
+    public String toJSONString() {
+        StringBuilder orderedJSONStringBuilder = new StringBuilder();
+
+        orderedJSONStringBuilder.append("{“id”: ");
+        orderedJSONStringBuilder.append(this.getId());
+
+        orderedJSONStringBuilder.append(", “price”: ");
+        orderedJSONStringBuilder.append(this.getPrice());
+
+        orderedJSONStringBuilder.append(", “quantity”: ");
+        orderedJSONStringBuilder.append(this.getQuantity());
+        orderedJSONStringBuilder.append("}");
+
+        return orderedJSONStringBuilder.toString();
     }
 
     /**

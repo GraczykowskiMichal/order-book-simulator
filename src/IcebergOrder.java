@@ -31,18 +31,6 @@ public class IcebergOrder extends Order {
         return this.visibleQuantity;
     }
 
-    @Override
-    public String toString() {
-        JSONObject jsonObject = new JSONObject();
-        jsonObject.put("direction", this.direction);
-        jsonObject.put("id", this.id);
-        jsonObject.put("price", this.price);
-        jsonObject.put("quantity", this.visibleQuantity);
-        jsonObject.put("orderId", this.orderId);
-        jsonObject.put("peak", this.peak);
-        return jsonObject.toString();
-    }
-
     /**
      * Resets timeStamp of the Iceberg Order.
      */

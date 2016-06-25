@@ -72,31 +72,52 @@ public final class OrderBookSimulator {
             }
     ));
 
-    /* List of transactions' info in JSON format */
-    LinkedList<String> transactionInfoList = new LinkedList<>();
+    /* List of transactions' info in JSON objects */
+    LinkedList<JSONObject> transactionInfoList = new LinkedList<>();
 
 
     /**
-     * Prints info about orders in the Order Book
+     * Prints info in ordered JSON format about orders in the Order Book.
      */
     private void printOrdersInfo() {
-        System.out.println("Buy orders:");
+        StringBuilder orderedJSONStringBuilder = new StringBuilder();
+
+        orderedJSONStringBuilder.append("{“buyOrders”: [");
+
+        /* Knows if the first element was displayed */
+        boolean isFirstElementDisplayed = false;
         for (Order order : buyOrders) {
-            System.out.println(order);
+            if (isFirstElementDisplayed) {
+                orderedJSONStringBuilder.append(", ");
+            } else {
+                isFirstElementDisplayed = true;
+            }
+
+            orderedJSONStringBuilder.append(order.toJSONString());
         }
 
-        System.out.println();
+        orderedJSONStringBuilder.append("], ");
 
-        System.out.println("Sell orders:");
+        orderedJSONStringBuilder.append("“sellOrders”: [");
+
+        isFirstElementDisplayed = false;
         for (Order order : sellOrders) {
-            System.out.println(order);
+            if (isFirstElementDisplayed) {
+                orderedJSONStringBuilder.append(", ");
+            } else {
+                isFirstElementDisplayed = true;
+            }
+
+            orderedJSONStringBuilder.append(order.toJSONString());
         }
 
-        System.out.println();
+        orderedJSONStringBuilder.append("]}");
+
+        System.out.println(orderedJSONStringBuilder.toString());
     }
 
     /**
-     * Adds transaction's info to the transactionInfoList.
+     * Adds transaction's info in JSON object to the transactionInfoList.
      *
      * @param buyOrderId buy Order's id
      * @param sellOrderId sell Order's id
@@ -112,7 +133,32 @@ public final class OrderBookSimulator {
         transactionJSON.put("quantity", quantity);
 
         /* Append new info */
-        transactionInfoList.add(transactionJSON.toString());
+        transactionInfoList.add(transactionJSON);
+    }
+
+    /**
+     *  Prints transaction info in JSON format with ordered fields.
+     *  (Fields of JSON are unordered by default)
+     *
+     * @param transactionJSON JSON object with fields: buyOrderId, sellOrderId, price, quantity
+     */
+    private void printOrderedJSONTransactionInfo(JSONObject transactionJSON) {
+        StringBuilder orderedJSONStringBuilder = new StringBuilder();
+
+        orderedJSONStringBuilder.append("{“buyOrderId”: ");
+        orderedJSONStringBuilder.append(transactionJSON.get("buyOrderId"));
+
+        orderedJSONStringBuilder.append(", “sellOrderId”: ");
+        orderedJSONStringBuilder.append(transactionJSON.get("sellOrderId"));
+
+        orderedJSONStringBuilder.append(", “price”: ");
+        orderedJSONStringBuilder.append(transactionJSON.get("price"));
+
+        orderedJSONStringBuilder.append(", “quantity”: ");
+        orderedJSONStringBuilder.append(transactionJSON.get("quantity"));
+        orderedJSONStringBuilder.append("}");
+
+        System.out.println(orderedJSONStringBuilder.toString());
     }
 
     /**
@@ -120,8 +166,8 @@ public final class OrderBookSimulator {
      */
     private void printTransactionInfoList() {
         /* Print info */
-        for (String transactionInfo : transactionInfoList) {
-            System.out.println(transactionInfo);
+        for (JSONObject transactionInfo : transactionInfoList) {
+            printOrderedJSONTransactionInfo(transactionInfo);
         }
 
         /* Clear list */
