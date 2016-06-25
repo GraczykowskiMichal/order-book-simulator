@@ -1,7 +1,4 @@
-import org.json.JSONObject;
-
 import java.util.Date;
-
 import static java.lang.Math.min;
 
 /**
