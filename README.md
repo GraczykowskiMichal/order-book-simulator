@@ -30,7 +30,7 @@ git clone https://github.com/GraczykowskiMichal/order-book-simulator
 cd order-book-simulator/src  
 javac -cp json.jar *.java  
   
-You can also open it as a project in IDE, such as IntelliJ IDEA  
+You can also open it as a project in IDE, such as IntelliJ IDEA
 
 ## Run instructions
 java -cp .:json.jar OrderBook
