@@ -26,9 +26,9 @@ Java SE Development Kit 8 is required to build the project.
 You can download it from here http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html
 
 ## Build instructions
-git clone
-cd order-book-simulator/src
-javac -cp json.jar *.java
+git clone  
+cd order-book-simulator/src  
+javac -cp json.jar *.java  
 
 ## Run instructions
 java -cp .:json.jar OrderBook
