@@ -213,7 +213,7 @@ public final class OrderBookSimulator {
                 },
                 /* Process transaction info - add it to the list to print later */
                 (sellOrderId, buyOrderId, price, quantity) -> {
-                    addToTransactionInfoList(sellOrderId, buyOrderId, price, quantity);
+                    addToTransactionInfoList(buyOrderId, sellOrderId, price, quantity);
                 });
     }
 
