@@ -81,6 +81,14 @@ public abstract class Order {
     }
 
     /**
+     * Resets timeStamp of the Order.
+     */
+    protected void resetTimeStamp() {
+        /* timeStamp = current date */
+        this.timeStamp = new Date();
+    }
+
+    /**
      * Decreases quantity of the Order.
      * Assumes that amount <= this.quantity.
      *

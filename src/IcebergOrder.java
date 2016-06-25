@@ -28,13 +28,6 @@ public class IcebergOrder extends Order {
         return this.visibleQuantity;
     }
 
-    /**
-     * Resets timeStamp of the Iceberg Order.
-     */
-    private void resetTimeStamp() {
-        /* timeStamp = current date */
-        this.timeStamp = new Date();
-    }
 
     /**
      * Decreases quantity of the Iceberg Order
@@ -50,10 +43,33 @@ public class IcebergOrder extends Order {
         this.quantity -= amount;
 
         /* If end of the peak is reached
-           reset timeStamp and update visible quantity */
+           update visible quantity */
         if (this.visibleQuantity == 0) {
-            resetTimeStamp();
             this.visibleQuantity = min(this.quantity, this.peak);
         }
+    }
+
+    /**
+     * Runs transaction on the Iceberg Order
+     * assuming that this method is called
+     * on the Iceberg Order that just joined the Order Book.
+     * Assumes that transaction can be made.
+     *
+     * @param other Order to make the transaction with
+     * @return amount of the transaction
+     */
+    @Override
+    public int runTransaction(Order other) {
+        int transactionAmount = min(this.getQuantity(), other.getQuantity());
+        this.decreaseQuantity(transactionAmount);
+
+        /* if the visible quantity of the order == transactionAmount
+           we need to reset the timeStamp. If other is Limit Order it will
+           be removed from the Order Book. */
+        if (other.getQuantity() == transactionAmount) {
+            other.resetTimeStamp();
+        }
+        other.decreaseQuantity(transactionAmount);
+        return transactionAmount;
     }
 }
