@@ -28,9 +28,9 @@ You can download it from here http://www.oracle.com/technetwork/java/javase/down
 ## Build instructions
 git clone https://github.com/GraczykowskiMichal/order-book-simulator  
 cd order-book-simulator/src  
-javac -cp json.jar *.java  
+javac -cp ../jars/json.jar *.java
   
-You can also open it as a project in IDE, such as IntelliJ IDEA
+You can also open it as a project in IDE, such as IntelliJ IDEA. Do not forget to add json.jar 
 
 ## Run instructions
-java -cp .:json.jar OrderBook
+java -cp .:../jars/json.jar OrderBook
