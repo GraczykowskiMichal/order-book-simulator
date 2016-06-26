@@ -206,8 +206,8 @@ public final class OrderBookSimulator {
                 /* Remove order with possible transaction from its set */
                 oppositeOrdersSet.remove(firstOppositeOrder);
 
-                /* Run transaction and Get its quantity */
-                int quantity = firstOppositeOrder.runTransaction(newOrder);
+                /* Run transaction and get its quantity */
+                int quantity = firstOppositeOrder.runTransactionOnIncomingOrder(newOrder);
                 /* Get new Order id*/
                 int matchingOrderId = newOrder.getId();
                 /* Get first opposite Order id */

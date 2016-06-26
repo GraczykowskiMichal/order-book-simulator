@@ -81,41 +81,19 @@ public abstract class Order {
     }
 
     /**
-     * Resets timeStamp of the Order.
-     */
-    protected void resetTimeStamp() {
-        /* timeStamp = current date */
-        this.timeStamp = new Date();
-    }
-
-    /**
-     * Decreases quantity of the Order.
+     * Decreases quantity of the incoming Order.
      * Assumes that amount <= this.quantity.
      *
      * @param amount amount to decrease
      */
-    protected abstract void decreaseQuantity(int amount);
+    protected abstract void decreaseIncomingOrderQuantity(int amount);
 
     /**
-     * Runs transaction on the Order
-     * assuming that this method is called
-     * on the Order that just joined the Order Book.
+     * Runs transaction on the incoming Order.
      * Assumes that transaction can be made.
      *
-     * @param other Order to make the transaction with
+     * @param incomingOrder incoming Order
      * @return amount of the transaction
      */
-    public int runTransaction(Order other) {
-        int transactionAmount = min(this.getQuantity(), other.getQuantity());
-        this.decreaseQuantity(transactionAmount);
-
-        /* if the visible quantity of the order == transactionAmount
-           we need to reset the timeStamp. If other is Limit Order it will
-           be removed from the Order Book. */
-        if (other.getQuantity() == transactionAmount) {
-            other.resetTimeStamp();
-        }
-        other.decreaseQuantity(transactionAmount);
-        return transactionAmount;
-    }
+    public abstract int runTransactionOnIncomingOrder(Order incomingOrder);
 }

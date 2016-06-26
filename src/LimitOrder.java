@@ -1,3 +1,5 @@
+import static java.lang.Math.min;
+
 /**
  * Created by michalgraczykowski on 22.06.16.
  *
@@ -19,7 +21,24 @@ public class LimitOrder extends Order {
      * @param amount amount to decrease
      */
     @Override
-    protected void decreaseQuantity(int amount) {
+    protected void decreaseIncomingOrderQuantity(int amount) {
         this.quantity -= amount;
+    }
+
+    /**
+     * Runs transaction on the incoming Order.
+     * Assumes that transaction can be made.
+     *
+     * @param incomingOrder incoming Order
+     * @return amount of the transaction
+     */
+    @Override
+    public int runTransactionOnIncomingOrder(Order incomingOrder) {
+        int transactionAmount = min(this.getQuantity(), incomingOrder.getQuantity());
+
+        this.quantity -= transactionAmount;
+
+        incomingOrder.decreaseIncomingOrderQuantity(transactionAmount);
+        return transactionAmount;
     }
 }
