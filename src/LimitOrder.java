@@ -15,7 +15,7 @@ public class LimitOrder extends Order {
     }
 
     /**
-     * Decreases quantity of the Limit Order.
+     * Decreases quantity of the incoming Limit Order.
      * Assumes that amount <= this.quantity.
      *
      * @param amount amount to decrease

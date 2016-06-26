@@ -38,7 +38,7 @@ public class IcebergOrder extends Order {
 
 
     /**
-     * Decreases quantity of the Iceberg Order
+     * Decreases quantity of the incoming Iceberg Order
      * and updates visiable quantity due to defined peak.
      * Assumes that amount <= this.visibleQuantity.
      *
